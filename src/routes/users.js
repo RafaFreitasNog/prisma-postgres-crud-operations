@@ -28,7 +28,7 @@ router.get('/:id', async (req, res) => {
     if (user) {
       res.status(200).json(user)
     } else {
-      res.status(200).json({message: 'No user found for this id'})
+      res.status(200).json({message: 'No user found with this id'})
     }
 
   } catch (error) {
@@ -58,19 +58,78 @@ router.get('/byemail/:email', async (req, res) => {
 }
 })
 
+//POST ROUTES
 
+//Register
 router.post('/', async (req, res) => {
   try {
     const {name, email} = req.body
-    const user = await prisma.user.create({
-      data: {
-        name: name,
-        email: email,
-      },
-    })
-    res.status(201).json(user)
+    try {
+      const user = await prisma.user.create({
+        data: {
+          name: name,
+          email: email,
+        },
+      })
+      res.status(201).json(user)
+    } catch (error) {
+      res.status(400).json({message: "E-mail already in use"})
+    }
   } catch (error) {
     res.status(500).json(error)
+  }
+})
+
+//PUT ROUTES
+
+//Edit user
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { name, email } = req.body
+    try {
+      const user = await prisma.user.update({
+        where: {
+          id: parseInt(id)
+        },
+        data: {
+          name: name,
+          email: email,
+        }
+      })
+      res.status(200).json(user)
+    } catch (error) {
+      res.status(400).json({message: "E-mail already in use"})
+    }
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+//DELETE ROUTES
+
+//Delete user
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const deleteUserNotes = prisma.notes.deleteMany({
+      where: {
+        userId: parseInt(id)
+      }
+    })
+    const deleteUser = prisma.user.delete({
+      where: {
+        id: parseInt(id)
+      }
+    })
+    const transaction = await prisma.$transaction([deleteUser, deleteUserNotes])
+
+    res.status(200).json(deleteUser)
+
+  } catch (error) {
+    res.status(500).json(error)
+    console.log(error);
   }
 })
 
