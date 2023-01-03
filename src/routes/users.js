@@ -23,6 +23,9 @@ router.get('/:id', async (req, res) => {
       where: {
         id: parseInt(id),
       },
+      include: {
+        written_posts: true,
+      },
     })
 
     if (user) {
@@ -115,17 +118,17 @@ router.delete('/:id', async (req, res) => {
 
     const deleteUserNotes = prisma.notes.deleteMany({
       where: {
-        userId: parseInt(id)
-      }
+        userId: parseInt(id),
+      },
     })
     const deleteUser = prisma.user.delete({
       where: {
-        id: parseInt(id)
-      }
+        id: parseInt(id),
+      },
     })
-    const transaction = await prisma.$transaction([deleteUser, deleteUserNotes])
+    const transaction = await prisma.$transaction([deleteUserNotes, deleteUser])
 
-    res.status(200).json(deleteUser)
+    res.status(200).json(transaction)
 
   } catch (error) {
     res.status(500).json(error)
