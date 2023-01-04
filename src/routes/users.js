@@ -1,5 +1,6 @@
 const express = require('express');
-const prisma = require('../database/config')
+const prisma = require('../database/config');
+const encryptPassword = require('../middlewares/encrypt');
 const router = express.Router();
 
 
@@ -65,7 +66,7 @@ router.get('/byemail/:email', async (req, res) => {
 //POST ROUTES
 
 //Register
-router.post('/', async (req, res) => {
+router.post('/', encryptPassword, async (req, res) => {
   try {
     const {name, email, password} = req.body
     try {
@@ -87,7 +88,7 @@ router.post('/', async (req, res) => {
 
 //PUT ROUTES
 
-//Edit user
+//Edit info
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
