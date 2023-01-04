@@ -15,6 +15,22 @@ router.get('/', async (req, res) => {
   }
 })
 
+//GET by author
+router.get('/by/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const notes = await prisma.notes.findMany({
+      where: {
+        userId: parseInt(id),
+      },
+    })
+    res.status(200).json(notes)
+  } catch (error) {
+    res.status(500).json(error)
+    console.log(error);
+  }
+})
+
 //GET by id
 router.get('/:id', async (req, res) => {
   try {
