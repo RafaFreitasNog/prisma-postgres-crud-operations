@@ -1,4 +1,3 @@
-const e = require('express');
 const express = require('express')
 const prisma = require('../database/config')
 const router = express.Router();
@@ -21,7 +20,7 @@ router.get('/by/:id', async (req, res) => {
     const { id } = req.params
     const notes = await prisma.notes.findMany({
       where: {
-        userId: parseInt(id),
+        userId: id,
       },
     })
     res.status(200).json(notes)
@@ -37,7 +36,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params
     const note = await prisma.notes.findUnique({
       where: {
-        id: parseInt(id),
+        id: id,
       },
       include: {
         author: true,
@@ -81,7 +80,7 @@ router.put('/:id', async (req, res) => {
     const { title, body } = req.body
     const note = await prisma.notes.update({
       where: {
-        id: parseInt(id),
+        id: id,
       },
       data: {
         title: title,
@@ -103,7 +102,7 @@ router.delete('/:id', async (req, res) => {
     try {
       const note = await prisma.notes.delete({
         where: {
-          id: parseInt(id),
+          id: id,
         },
       })
       res.status(200).json(note)

@@ -22,7 +22,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params
     const user = await prisma.user.findUnique({
       where: {
-        id: parseInt(id),
+        id: id,
       },
       include: {
         written_posts: true,
@@ -67,12 +67,13 @@ router.get('/byemail/:email', async (req, res) => {
 //Register
 router.post('/', async (req, res) => {
   try {
-    const {name, email} = req.body
+    const {name, email, password} = req.body
     try {
       const user = await prisma.user.create({
         data: {
           name: name,
           email: email,
+          password: password
         },
       })
       res.status(201).json(user)
@@ -94,7 +95,7 @@ router.put('/:id', async (req, res) => {
     try {
       const user = await prisma.user.update({
         where: {
-          id: parseInt(id)
+          id: id,
         },
         data: {
           name: name,
@@ -119,17 +120,20 @@ router.delete('/:id', async (req, res) => {
 
     const deleteUserNotes = prisma.notes.deleteMany({
       where: {
-        userId: parseInt(id),
+        userId: id,
       },
     })
     const deleteUser = prisma.user.delete({
       where: {
-        id: parseInt(id),
+        id: id,
       },
     })
-    const transaction = await prisma.$transaction([deleteUserNotes, deleteUser])
-
-    res.status(200).json(transaction)
+    try {
+      const transaction = await prisma.$transaction([deleteUserNotes, deleteUser])
+      res.status(200).json(transaction)
+    } catch (error) {
+      res.status(400).json({message: "No user found"})
+    }
 
   } catch (error) {
     res.status(500).json(error)
