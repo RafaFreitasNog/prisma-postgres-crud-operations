@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../database/config');
 const encryptPassword = require('../middlewares/encrypt');
 const router = express.Router();
+const bcrypt = require('bcrypt')
 
 
 //GET ROUTES
@@ -68,11 +69,12 @@ router.get('/byemail/:email', async (req, res) => {
 //Register
 router.post('/', encryptPassword, async (req, res) => {
   try {
-    const {name, email, password} = req.body
+    const {name, username, email, password} = req.body
     try {
       const user = await prisma.user.create({
         data: {
           name: name,
+          username: username,
           email: email,
           password: password
         },
@@ -80,6 +82,31 @@ router.post('/', encryptPassword, async (req, res) => {
       res.status(201).json(user)
     } catch (error) {
       res.status(400).json({message: "E-mail already in use"})
+    }
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+//Login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email
+      },
+    })
+    if (!user) {
+      res.status(400).json({message: 'No user found for this email'})
+    } else {
+      const same = await bcrypt.compare(password, user.password)
+    
+      if (same) {
+        res.status(200).json({message: 'Loged-in'})
+      } else {
+        res.status(400).json({message: "Incorrect password"})
+      }
     }
   } catch (error) {
     res.status(500).json(error)
