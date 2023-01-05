@@ -1,11 +1,12 @@
 const express = require('express')
 const prisma = require('../database/config')
 const router = express.Router();
+const authenticateUser = require('../middlewares/autheticate')
 
 //GET ROUTES
 
 //GET all
-router.get('/', async (req, res) => {
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const notes = await prisma.notes.findMany({})
     res.status(200).json(notes)

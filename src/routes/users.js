@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../database/config');
 const encryptPassword = require('../middlewares/encrypt');
+const authenticateUser = require('../middlewares/autheticate')
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
@@ -10,7 +11,7 @@ const jwtSecret = process.env.JWT_SECRET;
 //GET ROUTES
 
 //GET all
-router.get('/', async (req, res) => {
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const users = await prisma.user.findMany({})
     res.status(200).json(users)
@@ -99,12 +100,12 @@ router.post('/login', async (req, res) => {
         email: email
       },
     })
+
     if (!user) {
       res.status(400).json({message: 'No user found for this email'})
     } else {
 
       const same = await bcrypt.compare(password, user.password)
-    
       if (same) {
         const token = jwt.sign({ id: user.id}, jwtSecret, { expiresIn: '1d' })
         user.password = undefined
