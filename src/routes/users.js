@@ -2,7 +2,9 @@ const express = require('express');
 const prisma = require('../database/config');
 const encryptPassword = require('../middlewares/encrypt');
 const router = express.Router();
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
+const jwtSecret = process.env.JWT_SECRET;
 
 
 //GET ROUTES
@@ -100,10 +102,13 @@ router.post('/login', async (req, res) => {
     if (!user) {
       res.status(400).json({message: 'No user found for this email'})
     } else {
+
       const same = await bcrypt.compare(password, user.password)
     
       if (same) {
-        res.status(200).json({message: 'Loged-in'})
+        const token = jwt.sign({ id: user.id}, jwtSecret, { expiresIn: '1d' })
+        user.password = undefined
+        res.status(200).json({ user, token })
       } else {
         res.status(400).json({message: "Incorrect password"})
       }
