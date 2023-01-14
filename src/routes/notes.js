@@ -16,7 +16,7 @@ router.get('/', authenticateUser, async (req, res) => {
 })
 
 //GET by author
-router.get('/by/:id', async (req, res) => {
+router.get('/by/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     const notes = await prisma.notes.findMany({
@@ -32,7 +32,7 @@ router.get('/by/:id', async (req, res) => {
 })
 
 //GET by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     const note = await prisma.notes.findUnique({
@@ -56,7 +56,7 @@ router.get('/:id', async (req, res) => {
 //POST ROUTES
 
 //Post new note
-router.post('/', async (req, res) => {
+router.post('/', authenticateUser, async (req, res) => {
   try {
     const { title, body, userId } = req.body
     const note = await prisma.notes.create({
@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
 //PUT ROUTES
 
 //Edit note
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     const { title, body } = req.body
@@ -97,7 +97,7 @@ router.put('/:id', async (req, res) => {
 // DELETE ROUTES
 
 //Delete note
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     try {

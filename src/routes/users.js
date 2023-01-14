@@ -13,7 +13,13 @@ const jwtSecret = process.env.JWT_SECRET;
 //GET all
 router.get('/', authenticateUser, async (req, res) => {
   try {
-    const users = await prisma.user.findMany({})
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        username: true,
+      }
+    })
     res.status(200).json(users)
   } catch (error) {
     res.status(500).json(error)
@@ -22,15 +28,20 @@ router.get('/', authenticateUser, async (req, res) => {
 })
 
 //GET by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     const user = await prisma.user.findUnique({
       where: {
         id: id,
       },
-      include: {
-        written_posts: true,
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
       },
     })
 
@@ -47,12 +58,20 @@ router.get('/:id', async (req, res) => {
 })
 
 //GET by email
-router.get('/byemail/:email', async (req, res) => {
+router.get('/byemail/:email', authenticateUser, async (req, res) => {
   try {
     const { email } = req.params
     const user = await prisma.user.findUnique({
       where: {
         email: email,
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
       },
     })
     
@@ -82,6 +101,7 @@ router.post('/', encryptPassword, async (req, res) => {
           password: password
         },
       })
+      delete user.password
       res.status(201).json(user)
     } catch (error) {
       res.status(400).json({message: "E-mail already in use"})
@@ -108,7 +128,7 @@ router.post('/login', async (req, res) => {
       const same = await bcrypt.compare(password, user.password)
       if (same) {
         const token = jwt.sign({ id: user.id}, jwtSecret, { expiresIn: '1d' })
-        user.password = undefined
+        delete user.password
         res.status(200).json({ user, token })
       } else {
         res.status(400).json({message: "Incorrect password"})
@@ -122,10 +142,10 @@ router.post('/login', async (req, res) => {
 //PUT ROUTES
 
 //Edit info
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
-    const { name, email } = req.body
+    const { name, email, username } = req.body
     try {
       const user = await prisma.user.update({
         where: {
@@ -134,8 +154,10 @@ router.put('/:id', async (req, res) => {
         data: {
           name: name,
           email: email,
+          username: username
         }
       })
+      delete user.password
       res.status(200).json(user)
     } catch (error) {
       res.status(400).json({message: "E-mail already in use"})
@@ -148,7 +170,7 @@ router.put('/:id', async (req, res) => {
 //DELETE ROUTES
 
 //Delete user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -164,7 +186,7 @@ router.delete('/:id', async (req, res) => {
     })
     try {
       const transaction = await prisma.$transaction([deleteUserNotes, deleteUser])
-      res.status(200).json(transaction)
+      res.status(200).json()
     } catch (error) {
       res.status(400).json({message: "No user found"})
     }

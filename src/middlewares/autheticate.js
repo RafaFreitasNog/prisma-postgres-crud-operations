@@ -17,7 +17,7 @@ const authenticateUser = async (req, res, next) => {
             id: decoded.id,
           },
         })
-        findUser.password = undefined
+        delete findUser.password;
         req.reqUser = findUser
         next()
       }
