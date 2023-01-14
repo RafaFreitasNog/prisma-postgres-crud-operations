@@ -4,7 +4,8 @@ const encryptPassword = require('../middlewares/encrypt');
 const authenticateUser = require('../middlewares/autheticate')
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const isSelf = require('../middlewares/isSelf');
 const jwtSecret = process.env.JWT_SECRET;
 
 
@@ -142,7 +143,7 @@ router.post('/login', async (req, res) => {
 //PUT ROUTES
 
 //Edit info
-router.put('/:id', authenticateUser, async (req, res) => {
+router.put('/:id', authenticateUser, isSelf, async (req, res) => {
   try {
     const { id } = req.params
     const { name, email, username } = req.body
@@ -170,7 +171,7 @@ router.put('/:id', authenticateUser, async (req, res) => {
 //DELETE ROUTES
 
 //Delete user
-router.delete('/:id', authenticateUser, async (req, res) => {
+router.delete('/:id', authenticateUser, isSelf, async (req, res) => {
   try {
     const { id } = req.params
 

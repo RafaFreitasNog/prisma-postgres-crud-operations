@@ -79,16 +79,32 @@ router.put('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
     const { title, body } = req.body
-    const note = await prisma.notes.update({
+    const note = await prisma.notes.findUnique({
       where: {
-        id: id,
-      },
-      data: {
-        title: title,
-        body: body,
-      },
+        id: id
+      }
     })
-    res.status(201).json(note)
+    if (!note) {
+      res.status(400).json({message: 'Record does not exist'})
+    } else {
+
+      const checkIfOwner = isOwner(req.reqUser.id, note.userId)
+      if (checkIfOwner) {        
+        const updatedNote = await prisma.notes.update({
+          where: {
+            id: id,
+          },
+          data: {
+            title: title,
+            body: body,
+          },
+        })
+        res.status(200).json(updatedNote)
+      } else {
+        res.status(401).json({message: 'You dont have permission to edit this record'})
+      }
+
+    }
   } catch (error) {
     res.status(500).json(error)
   }
@@ -100,19 +116,39 @@ router.put('/:id', authenticateUser, async (req, res) => {
 router.delete('/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params
-    try {
-      const note = await prisma.notes.delete({
-        where: {
-          id: id,
-        },
-      })
-      res.status(200).json(note)
-    } catch (error) {
-      res.status(400).json({message: "Record does not exist"})
+    const note = await prisma.notes.findUnique({
+      where: {
+        id: id
+      }
+    })
+    if (!note) {
+      res.status(400).json({message: 'Record does not exist'})
+    } else {
+
+      const checkIfOwner = isOwner(req.reqUser.id, note.userId)
+      if (checkIfOwner) {        
+        const deletedNote = await prisma.notes.delete({
+          where: {
+            id: id,
+          },
+        })
+        res.status(200).json(deletedNote)
+      } else {
+        res.status(401).json({message: 'You dont have permission to edit this record'})
+      }
+
     }
   } catch (error) {
     res.status(500).json(error)
   }
 })
+
+function isOwner(reqUserId, noteUserId) {
+  if (reqUserId == noteUserId) {
+    return true
+  } else {
+    return false
+  }
+}
 
 module.exports = router
