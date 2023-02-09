@@ -46,6 +46,7 @@ router.get('/:id', authenticateUser, async (req, res) => {
     if (!note) {
       res.status(400).json({message: "No notes found for this id"})
     } else {
+      note.author.password = undefined
       res.status(200).json(note)
     }
   } catch (error) {
