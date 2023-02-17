@@ -64,7 +64,11 @@ router.post('/', authenticateUser, async (req, res) => {
       data: {
         title: title,
         body: body,
-        userId: userId
+        author: {
+          connect: {
+            id: userId
+          }
+        }
       }
     })
     res.status(201).json(note)

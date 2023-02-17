@@ -12,7 +12,7 @@ const jwtSecret = process.env.JWT_SECRET;
 //GET ROUTES
 
 //GET all
-router.get('/', authenticateUser, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -26,6 +26,11 @@ router.get('/', authenticateUser, async (req, res) => {
     res.status(500).json(error)
     console.log(error);
   }
+})
+
+//revalidate
+router.get('/revalidate', authenticateUser, async (req, res) => {
+  res.status(200).json(req.reqUser)
 })
 
 //GET by id
@@ -86,6 +91,7 @@ router.get('/byemail/:email', authenticateUser, async (req, res) => {
   res.send(500).json(error)
 }
 })
+
 
 //POST ROUTES
 

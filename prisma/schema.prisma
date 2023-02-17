@@ -18,6 +18,7 @@ model User {
   password      String
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+
   written_posts Notes[]
 }
 
@@ -27,6 +28,7 @@ model Notes {
   body       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  
   author     User     @relation(fields: [userId], references: [id])
   userId     String
 }
