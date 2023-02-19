@@ -12,7 +12,7 @@ const jwtSecret = process.env.JWT_SECRET;
 //GET ROUTES
 
 //GET all
-router.get('/', async (req, res) => {
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -131,18 +131,21 @@ router.post('/login', async (req, res) => {
     if (!user) {
       res.status(400).json({message: 'No user found for this email'})
     } else {
-
-      const same = await bcrypt.compare(password, user.password)
-      if (same) {
-        const token = jwt.sign({ id: user.id}, jwtSecret, { expiresIn: '1d' })
-        delete user.password
-        res.status(200).json({ user, token })
-      } else {
-        res.status(400).json({message: "Incorrect password"})
+      if (!password) {
+        res.status(400).json({message: 'No password provided'})
+      } else {        
+        const same = await bcrypt.compare(password, user.password)
+        if (same) {
+          const token = jwt.sign({ id: user.id}, jwtSecret, { expiresIn: '1d' })
+          delete user.password
+          res.status(200).json({ user, token })
+        } else {
+          res.status(400).json({message: "Incorrect password"})
+        }
       }
     }
   } catch (error) {
-    res.status(500).json(error)
+    res.status(500).json({message: error})
   }
 })
 
