@@ -6,6 +6,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const isSelf = require('../middlewares/isSelf');
+const revalidateUser = require('../middlewares/revalidate');
 const jwtSecret = process.env.JWT_SECRET;
 
 
@@ -29,7 +30,7 @@ router.get('/', authenticateUser, async (req, res) => {
 })
 
 //revalidate
-router.get('/revalidate', authenticateUser, async (req, res) => {
+router.get('/revalidate', revalidateUser, async (req, res) => {
   res.status(200).json(req.reqUser)
 })
 
@@ -48,6 +49,11 @@ router.get('/:id', authenticateUser, async (req, res) => {
         email: true,
         created_at: true,
         updated_at: true,
+        _count: {
+          select: {
+            written_posts: true
+          }
+        }
       },
     })
 
@@ -126,6 +132,13 @@ router.post('/login', async (req, res) => {
       where: {
         email: email
       },
+      include: {
+        _count: {
+          select: {
+            written_posts: true
+          }
+        }
+      }
     })
 
     if (!user) {
