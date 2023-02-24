@@ -59,14 +59,14 @@ router.get('/:id', authenticateUser, async (req, res) => {
 //Post new note
 router.post('/', authenticateUser, async (req, res) => {
   try {
-    const { title, body, userId } = req.body
+    const { title, body } = req.body
     const note = await prisma.notes.create({
       data: {
         title: title,
         body: body,
         author: {
           connect: {
-            id: userId
+            id: req.reqUser.id
           }
         }
       }
