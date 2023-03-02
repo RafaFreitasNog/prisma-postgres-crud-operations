@@ -23,6 +23,9 @@ router.get('/by/:id', authenticateUser, async (req, res) => {
       where: {
         userId: id,
       },
+      orderBy: {
+        updated_at: 'desc'
+      }
     })
     res.status(200).json(notes)
   } catch (error) {
