@@ -34,6 +34,52 @@ router.get('/revalidate', revalidateUser, async (req, res) => {
   res.status(200).json(req.reqUser)
 })
 
+//GET following
+router.get('/following', revalidateUser, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: req.reqUser.id
+      },
+      include: {
+        following: {
+          select: {
+            id: true,
+            username: true,
+            name: true
+          }
+        }
+      }
+    })
+    res.status(200).json(user.following)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+//GET followers
+router.get('/followers', revalidateUser, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: req.reqUser.id
+      },
+      include: {
+        followers: {
+          select: {
+            id: true,
+            username: true,
+            name: true
+          }
+        }
+      }
+    })
+    res.status(200).json(user.followers)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
 //GET by id
 router.get('/:id', authenticateUser, async (req, res) => {
   try {
@@ -51,7 +97,9 @@ router.get('/:id', authenticateUser, async (req, res) => {
         updated_at: true,
         _count: {
           select: {
-            written_posts: true
+            written_posts: true,
+            followers: true,
+            following: true
           }
         }
       },
@@ -163,6 +211,29 @@ router.post('/login', async (req, res) => {
 })
 
 //PUT ROUTES
+
+//Follow 
+router.put('/follow/:id', authenticateUser, async (req, res) => {
+  try {
+    const { id } = req.params
+    const user = await prisma.user.update({
+      where: {
+        id: req.reqUser.id
+      },
+      data: {
+        following: {
+          connect: {
+            id: id
+          }
+        }
+      }
+    })
+    delete user.password
+    res.status(201).json(user)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
 
 //Edit info
 router.put('/:id', authenticateUser, isSelf, async (req, res) => {

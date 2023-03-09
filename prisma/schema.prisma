@@ -20,6 +20,10 @@ model User {
   updated_at    DateTime @updatedAt
 
   written_posts Notes[]
+
+
+  followers User[]  @relation("UserFollows")
+  following User[] @relation("UserFollows")
 }
 
 model Notes {
